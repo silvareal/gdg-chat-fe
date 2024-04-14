@@ -1,7 +1,34 @@
+import { useState } from "react";
 import "./App.css";
+import axios from "axios";
+import Markdown from "react-markdown";
 
 function App() {
-  const message = "";
+  const [message, setMessage] = useState("");
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setInput(e.target.value);
+  };
+  const sendMessage = () => {
+    setIsLoading(true);
+    axios
+      .post("http://127.0.0.1:8000/gemini", {
+        prompt: input,
+      })
+      .then(function (response) {
+        console.log(response);
+        setIsLoading(false);
+        setInput("");
+        setMessage(response?.data?.response);
+      })
+      .catch(function (error) {
+        setIsLoading(false);
+        console.log(error);
+      });
+  };
+
   return (
     <>
       <div style={{ width: "100%", margin: "0 auto" }}>
@@ -9,7 +36,13 @@ function App() {
           Hi👋, I'm Eyo, <br /> Your financial adviser
         </h1>
         <div style={{ display: "flex", gap: 10 }}>
-          <input type="text" style={{ width: "80%" }} placeholder="Message" />
+          <input
+            disabled={isLoading}
+            onChange={handleChange}
+            type="text"
+            style={{ width: "80%" }}
+            placeholder="Message"
+          />
           <div
             style={{
               width: "20%",
@@ -19,7 +52,9 @@ function App() {
             }}
           >
             <div></div>
-            <button>Enter</button>
+            <button disabled={isLoading} onClick={sendMessage}>
+              {isLoading ? "Loading" : "Enter"}
+            </button>
           </div>
         </div>
 
@@ -30,10 +65,11 @@ function App() {
             borderRadius: 20,
             marginTop: 50,
             height: 450,
-            overflow: "hidden",
+            textAlign: "left",
+            overflow: "scroll",
           }}
         >
-          {!message ? "No Message" : message}
+          {!message ? "No Message" : <Markdown>{message}</Markdown>}
         </div>
       </div>
     </>
